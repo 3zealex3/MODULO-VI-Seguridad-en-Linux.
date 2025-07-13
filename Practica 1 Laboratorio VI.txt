@@ -1,0 +1,44 @@
+dnf install gnupg2 -y
+clear
+dnf install gnupg2 -y
+clear
+mkdir /home/eze-20242286/cifrado
+echo "Ezequiel Castillo 20242286" > /home/eze-20242286/cifrado/archivo.txt
+ls
+ls cifrado/
+cat cifrado/archivo.txt 
+clear
+gpg2 --gen-key
+clear
+ls
+cd cifrado/
+ls
+cat archivo.txt 
+cd ..
+ls
+ls -a
+cd ..
+ls
+cd eze-20242286/
+ls
+exit
+cd ..
+ls
+gpg2 -c /home/eze-20242286/cifrado/archivo.txt 
+ls
+cd cifrado/
+ls
+cat archivo.txt.gpg 
+clesr
+clear
+ls
+rm archivo.txt
+ls
+gpg2 -d /home/eze-20242286/cifrado/archivo.txt.gpg 
+ls
+cat /home/eze-20242286/cifrado/archivo.txt.gpg 
+clear
+gpg2 -o archivo_original.txt -d archivo.txt.gpg 
+ls
+cat archivo_original.txt 
+clear
