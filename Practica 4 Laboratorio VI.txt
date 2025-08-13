@@ -1,48 +1,71 @@
-# Instalamos y habilitamos el servidor SSH
-sudo dnf install openssh-server -y
-sudo systemctl start sshd
-sudo systemctl enable sshd
-sudo systemctl status sshd
 
-# Habilitamos el repositorio EPEL
+----------Monitoreo de logs-----------------
+
+sudo tail -f /var/log/secure
+
+
+
+-------------Dependencias---------------------------------
+
 sudo dnf install epel-release -y
 
-# Instalamos Google Authenticator y librerías necesarias
-sudo dnf install google-authenticator qrencode qrencode-libs -y
 
-# Cambiamos al usuario que usará el 2FA
-su - eze-20242286
+--------------Instalación de Google Authenticator-------------------
 
-# Configuramos Google Authenticator (genera QR, claves, etc.)
+
+sudo dnf install google-authenticator qrencode qrencode-libs
+
+
+
+---------------Poner el servidor permisivo-----------------
+
+getenforce (verificar)
+
+setenforce 0 (modo permisivo)
+
+
+----------------Ejecutar google-authenticator---------------------
+
+
 google-authenticator
-# *Aceptar todas las opciones recomendadas para mayor seguridad*
 
-# Editamos el archivo PAM para SSH
-sudo nano /etc/pam.d/sshd
-# Agregar al inicio o antes de otras reglas:
-# auth required pam_google_authenticator.so
 
-# Editamos configuración SSH para habilitar 2FA
-sudo nano /etc/ssh/sshd_config
-# Agregar o asegurarse que las siguientes líneas estén presentes:
-# PasswordAuthentication yes
-# ChallengeResponseAuthentication yes
-# UsePAM yes
+----------Otorgar permisos al archivo 2FA--------------------------
 
-# Configuramos contexto SELinux para la carpeta y archivo del usuario
-sudo semanage fcontext -a -t auth_home_t "/home/eze-20242286(/.*)?"
-sudo restorecon -Rv /home/eze-20242286
-
-# Ajustamos permisos
-sudo chown eze-20242286:eze-20242286 /home/eze-20242286/.google_authenticator
 sudo chmod 600 /home/eze-20242286/.google_authenticator
 
-sudo chmod 700 /home/eze-20242286
-sudo chown eze-20242286:eze-20242286 /home/eze-20242286
+sudo chown eze-20242286:eze-20242286 /home/eze-20242286/.google_authenticator
 
-# Reiniciamos el servicio SSH para aplicar cambios
-sudo systemctl restart sshd
 
-# Probamos conexión desde el host
-ssh eze-20242286@10.0.0.217
-# Primero pedirá la contraseña, luego el código de Google Authenticator
+
+----------Activar el puerto ntp para poder sincronizar el reloj---------------
+
+ sudo firewall-cmd --add-service=ntp --permanent
+ sudo firewall-cmd --reload
+
+
+-------------Habilitar sincronizacion-----------------------
+
+sudo timedatectl set-ntp yes  # Habilita sincronización automática
+sudo systemctl restart chronyd 
+
+
+-------------Configuracion sshd----------------------
+
+sudo nano /etc/ssh/sshd_config.d/10-mfa.conf
+
+ChallengeResponseAuthentication yes
+UsePam yes
+PubkeyAuthentication yes
+Match all
+        AuthenticationMethods publickey,keyboard-interactive
+
+
+
+---------------Configuración en Pam-------------
+
+sudo nano /etc/pam.d/sshd
+
+Añadir en la segunda o ultima linea:
+
+auth required pam_google_authenticator.so
